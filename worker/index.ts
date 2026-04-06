@@ -1,28 +1,46 @@
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { betterAuth } from "better-auth";
+
 export interface Env {
   DB: D1Database;
   ADMIN_KEY: string;
+  BETTER_AUTH_SECRET: string;
+  BETTER_AUTH_URL: string;
 }
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    const { pathname } = url;
+function createAuth(env: Env) {
+  return betterAuth({
+    database: env.DB,
+    secret: env.BETTER_AUTH_SECRET,
+    baseURL: env.BETTER_AUTH_URL,
+    emailAndPassword: { enabled: true },
+  });
+}
 
-    const headers = {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    };
+const app = new Hono<{ Bindings: Env }>();
 
-    if (pathname === "/api/health" && request.method === "GET") {
-      return new Response(
-        JSON.stringify({ status: "ok", service: "client-portal-api", ts: Date.now() }),
-        { status: 200, headers }
-      );
-    }
+app.use(
+  "/api/auth/*",
+  cors({
+    origin: [
+      "https://client-portal-mvp.pages.dev",
+      "http://localhost:5173",
+      "http://localhost:8787",
+    ],
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+  })
+);
 
-    return new Response(JSON.stringify({ error: "Not found" }), {
-      status: 404,
-      headers,
-    });
-  },
-};
+app.get("/api/health", (c) => {
+  return c.json({ status: "ok", service: "client-portal-api", ts: Date.now() });
+});
+
+app.all("/api/auth/*", (c) => {
+  const auth = createAuth(c.env);
+  return auth.handler(c.req.raw);
+});
+
+export default app;

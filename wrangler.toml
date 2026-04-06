@@ -1,9 +1,12 @@
 name = "client-portal-api"
 compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
 main = "worker/index.ts"
 
 # Secrets (set via `wrangler secret put` or CF dashboard):
-# ADMIN_KEY — internal admin API key for privileged endpoints
+# ADMIN_KEY            — internal admin API key for privileged endpoints
+# BETTER_AUTH_SECRET   — random 32+ char secret for Better Auth (generate with: openssl rand -hex 32)
+# BETTER_AUTH_URL      — public URL of this Worker, e.g. https://client-portal-api.workers.dev
 
 [[d1_databases]]
 binding = "DB"
