@@ -1,0 +1,12 @@
+name = "client-portal-api"
+compatibility_date = "2025-01-01"
+main = "worker/index.ts"
+
+# Secrets (set via `wrangler secret put` or CF dashboard):
+# ADMIN_KEY — internal admin API key for privileged endpoints
+
+[[d1_databases]]
+binding = "DB"
+database_name = "client-portal-db"
+database_id = "06b78cee-dbc6-433f-aef7-ae45b31ad7f1"
+migrations_dir = "migrations"
